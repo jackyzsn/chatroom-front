@@ -70,9 +70,8 @@ const useStyles = makeStyles((theme) => ({
 export default function Home(props) {
   const classes = useStyles();
   const [name, setName] = useState('');
-  const [messages, setMessages] = useState({
-    data: [],
-  });
+  const [messages, setMessages] = useState([]);
+
   const [typedMessage, setTypedMessage] = useState('');
   const [hasUserName, setHasUserName] = useState(false);
   const clientRef = useRef(null);
@@ -104,7 +103,7 @@ export default function Home(props) {
 
   const displayMessages =
     messages &&
-    messages.data.map((msg) => {
+    messages.map((msg) => {
       return (
         <div>
           {name === msg.name ? (
@@ -275,12 +274,10 @@ export default function Home(props) {
           console.log('Disconnected');
         }}
         onMessage={(msg) => {
-          var wrkMessages = messages.data;
+          var wrkMessages = messages;
           wrkMessages.push(msg);
 
-          setMessages((prev) => {
-            return { ...prev, data: wrkMessages };
-          });
+          setMessages([...wrkMessages]);
         }}
         ref={clientRef}
       />
