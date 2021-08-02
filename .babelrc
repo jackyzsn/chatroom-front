@@ -1,0 +1,22 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "usage",
+        "corejs": 3
+      }
+    ],
+    "@babel/preset-react"
+  ],
+  "env": {
+    "development": {
+      "ignore": [
+        "src/**/*.test.js",
+        "src/**/__mocks__/*",
+        "src/**/__test__/*",
+        "src/**/__tests__/*"
+      ]
+    }
+  }
+}
