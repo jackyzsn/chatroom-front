@@ -103,9 +103,9 @@ export default function Home(props) {
 
   const displayMessages =
     messages &&
-    messages.map((msg) => {
+    messages.map((msg, inx) => {
       return (
-        <div>
+        <div key={inx}>
           {name === msg.name ? (
             <div>
               <p className={classes.title1}>{msg.name} : </p>
@@ -115,7 +115,7 @@ export default function Home(props) {
               </p>
             </div>
           ) : (
-            <div>
+            <div key={inx}>
               <p className={classes.title2}>{msg.name} : </p>
               <br />
               <p>
