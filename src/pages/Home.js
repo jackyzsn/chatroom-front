@@ -14,7 +14,6 @@ import {
 import SockJsClient from 'react-stomp';
 import { makeStyles } from '@material-ui/core/styles';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import moment from 'moment';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,6 +50,14 @@ const useStyles = makeStyles((theme) => ({
   rootExpanded: {
     flexGrow: 1,
   },
+  title0: {
+    textAign: 'left',
+    color: '#828282',
+    marginTop: '0px',
+    float: 'left',
+    clear: 'both',
+    fontWeight: 'bold',
+  },
   title1: {
     textAign: 'left',
     color: '#269CEB',
@@ -83,15 +90,35 @@ export default function Home(props) {
     }
   }, [messages]);
 
+  const onConnect = () => {
+    console.log('connected');
+  };
+
+  const onSetUserName = (name) => {
+    if (clientRef.current) {
+      clientRef.current.sendMessage(
+        '/app/event',
+        JSON.stringify({
+          type: 'event-join',
+          name: name,
+        })
+      );
+    }
+  };
+
+  const onDisconnect = () => {
+    console.log('disconnected');
+  };
+
   const sendMessage = () => {
     if (typedMessage.trim() !== '') {
       if (clientRef.current) {
         clientRef.current.sendMessage(
           '/app/user-all',
           JSON.stringify({
+            type: 'message',
             name: name,
             message: typedMessage,
-            timestamp: moment().format(),
           })
         );
         setTypedMessage('');
@@ -104,27 +131,43 @@ export default function Home(props) {
   const displayMessages =
     messages &&
     messages.map((msg, inx) => {
-      return (
-        <div key={inx}>
-          {name === msg.name ? (
-            <div>
-              <p className={classes.title1}>{msg.name} : </p>
-              <br />
-              <p>
-                {msg.timestamp}: {msg.message}
-              </p>
-            </div>
-          ) : (
-            <div key={inx}>
-              <p className={classes.title2}>{msg.name} : </p>
-              <br />
-              <p>
-                {msg.timestamp}: {msg.message}
-              </p>
-            </div>
-          )}
-        </div>
-      );
+      if (msg.type === 'event-join') {
+        return (
+          <div key={inx}>
+            <p className={classes.title0}>
+              {msg.timestamp} : [{msg.name}] has joined the chatroom.
+            </p>
+            <br />
+          </div>
+        );
+      } else if (msg.type === 'event-leave') {
+        return (
+          <div key={inx}>
+            <p className={classes.title0}>
+              {msg.timestamp} : [{msg.name}] has left the chatroom.
+            </p>
+            <br />
+          </div>
+        );
+      } else {
+        return (
+          <div key={inx}>
+            {name === msg.name ? (
+              <div>
+                <p className={classes.title1}>
+                  {msg.timestamp}: [{msg.name}]: {msg.message}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className={classes.title2}>
+                  {msg.timestamp}: [{msg.name}]: {msg.message}
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      }
     });
 
   function ScrollTop(props) {
@@ -194,6 +237,7 @@ export default function Home(props) {
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
                           setHasUserName(true);
+                          onSetUserName(event.target.value);
                         }
                       }}
                       autoFocus
@@ -210,6 +254,7 @@ export default function Home(props) {
                       disabled={name.trim() === ''}
                       onClick={() => {
                         setHasUserName(true);
+                        onSetUserName(name);
                       }}
                       fullWidth
                     >
@@ -267,16 +312,13 @@ export default function Home(props) {
       <SockJsClient
         url="/websocket-chat/"
         topics={['/topic/user']}
-        onConnect={() => {
-          console.log('connected');
-        }}
-        onDisconnect={() => {
-          console.log('Disconnected');
-        }}
+        onConnect={onConnect}
+        onDisconnect={onDisconnect}
         onMessage={(msg) => {
           var wrkMessages = messages;
           wrkMessages.push(msg);
 
+          console.log(msg);
           setMessages([...wrkMessages]);
         }}
         ref={clientRef}
