@@ -53,24 +53,14 @@ const useStyles = makeStyles((theme) => ({
   title0: {
     textAign: 'left',
     color: '#828282',
-    marginTop: '0px',
-    float: 'left',
-    clear: 'both',
-    fontWeight: 'bold',
   },
   title1: {
     textAign: 'left',
     color: '#269CEB',
-    marginTop: '0px',
-    float: 'left',
-    clear: 'both',
   },
   title2: {
     textAign: 'left',
     color: '#FF9D00',
-    marginTop: '0px',
-    float: 'left',
-    clear: 'both',
   },
 }));
 
@@ -79,10 +69,14 @@ export default function Home(props) {
   const [name, setName] = useState('');
   const [messages, setMessages] = useState([]);
 
+  const { innerHeight: height } = window;
+
   const [typedMessage, setTypedMessage] = useState('');
   const [hasUserName, setHasUserName] = useState(false);
   const clientRef = useRef(null);
   const scrollRef = useRef(null);
+
+  const chatWindowHeight = height * 0.7;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -131,43 +125,35 @@ export default function Home(props) {
   const displayMessages =
     messages &&
     messages.map((msg, inx) => {
-      if (msg.type === 'event-join') {
-        return (
-          <div key={inx}>
-            <p className={classes.title0}>
-              {msg.timestamp} : [{msg.name}] has joined the chatroom.
-            </p>
-            <br />
-          </div>
-        );
-      } else if (msg.type === 'event-leave') {
-        return (
-          <div key={inx}>
-            <p className={classes.title0}>
-              {msg.timestamp} : [{msg.name}] has left the chatroom.
-            </p>
-            <br />
-          </div>
-        );
-      } else {
-        return (
-          <div key={inx}>
-            {name === msg.name ? (
-              <div>
-                <p className={classes.title1}>
-                  {msg.timestamp}: [{msg.name}]: {msg.message}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className={classes.title2}>
-                  {msg.timestamp}: [{msg.name}]: {msg.message}
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      }
+      return (
+        <React.Fragment>
+          {msg.type === 'event-join' && (
+            <div key={inx}>
+              <Typography variant="h6" component="h6" className={classes.title0}>
+                {msg.timestamp} : [{msg.name}] has joined the chatroom.
+              </Typography>
+            </div>
+          )}
+          {msg.type === 'event-leave' && (
+            <div key={inx}>
+              <Typography variant="h6" component="h6" className={classes.title0}>
+                {msg.timestamp} : [{msg.name}] has left the chatroom.
+              </Typography>
+            </div>
+          )}
+          {msg.type === 'message' && (
+            <div key={inx}>
+              <Typography
+                variant="body1"
+                component="body1"
+                className={name === msg.name ? classes.title1 : classes.title2}
+              >
+                {msg.timestamp}: [{msg.name}]: {msg.message}
+              </Typography>
+            </div>
+          )}
+        </React.Fragment>
+      );
     });
 
   function ScrollTop(props) {
@@ -269,12 +255,16 @@ export default function Home(props) {
           {hasUserName && (
             <React.Fragment>
               <Container component="main" maxWidth="md">
-                <Grid item xs={12}>
-                  <Box style={{ maxHeight: '60vh', minHeight: '60vh', overflow: 'auto' }}>
-                    {displayMessages}
-                    <div ref={scrollRef}></div>
-                  </Box>
-                </Grid>
+                <Box
+                  style={{
+                    maxHeight: chatWindowHeight,
+                    minHeight: chatWindowHeight,
+                    overflow: 'auto',
+                  }}
+                >
+                  {displayMessages}
+                  <div ref={scrollRef} />
+                </Box>
               </Container>
               <Grid item xs={10}>
                 <Box display="flex" justifyContent="center" mt={5} mb={2}>
@@ -317,8 +307,6 @@ export default function Home(props) {
         onMessage={(msg) => {
           var wrkMessages = messages;
           wrkMessages.push(msg);
-
-          console.log(msg);
           setMessages([...wrkMessages]);
         }}
         ref={clientRef}
